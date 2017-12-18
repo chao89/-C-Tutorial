@@ -1,0 +1,37 @@
+一、...
+3.随机读写
+1)设置读写指针的位置
+istream& istream::seekg (off_type offset, ios::seekdir origin);
+ostream& ostream::seekp (off_type offset, ios::seekdir origin);
+origin取值：
+ios::beg - 从文件头(文件的第一个字节)偏移；
+ios::cur  - 从当前位置(文件最后一次被读写字节的下一个位置)偏移；
+ios::end - 从文件尾(文件最后一个字节的下一个位置)偏移。
+offset取正数表示向文件尾方向偏移，取负数表示向文件头方向偏移。
+2)获取读写指针的位置
+pos_type istream::tellg (void);
+pos_type ostream::tellp (void);
+返回读写指针的当前位置相对于文件头的偏移字节数。
+3)虽然在函数接口上读写指针用两组独立的函数访问，但多数标准库仍然使用一个内核参数表示文件的当前位置。考虑到未来标准库的扩展和更新，建议读取时使用seekg/tellg，写入时使用seekp/tellp。
+4.字符串流
+#include <sstream>
+ostringstream: 输出字符串流，在字符串中格式化数据。
+istringstream: 输入字符串流，从有格式字符串中提取数据。
+----------------------------------------------------------------------
+入门
+C++程序设计原理与实践，Bjarne Stroustrup
+C++ Primer，Stanley B. Lippman
+进阶
+Effective C++: 改善程序与设计的55个具体做法，Scott Meyers
+More Effective C++: 35个改善编程与设计的有效方法，
+Scott Meyers
+深研
+深度探索C++对象模型，Stanley B. Lippman
+设计模式：可复用面向对象软件的基础，Erich Gamma, Richard Helm
+拓展
+深入理解C++11: C++11新特性解析与应用，IBM XL编译器中国团队
+Boost程序库完全开发指南: 深入C++"准"标准库，罗剑锋
+休闲
+C++语言99个常见编程错误，Stephen C. Dewhurst
+C++语言的设计与演化，Bjarne Stroustrup
+大话设计模式，程杰

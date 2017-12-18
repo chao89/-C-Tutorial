@@ -1,0 +1,195 @@
+标准C++语言程序设计
+一、C++语言背景介绍
+1.历史人物
+1)Ken Thompson
+1943-，B语言之父、UNIX发明人之一。
+2)Dennis Ritchie
+1941-2011，C语言之父、UNIX之父、黑客之父。
+3)Bjare Stroustrup
+1950-，C++之父。
+2.C++之父的贡献
+1)分布式计算机系统仿真
+simula，面向对象的抽象，性能太差
+B语言，性能优越，缺少面向对象的能力
+2)UNIX系统分布内核流量分析
+1979年10月，Cpre，宏预编译器
+利用C语言的宏定义模拟simula的语法，通过Cpre预编译成C语言代码，然后在编译为可执行程序。
+1983年，编译型语言，C with Classes，后来才更名为C++。
+1985年，第一款产品级的C++编译器——CFront 1.0，同年C++之父推出《The C++ Programming Language》第一版。
+3.C++大事记
+1979 - Cpre
+1983 - C with Classes -> C++
+1985 - CFront 1.0
+1987 - GNU C++
+1990 - Borland C++
+1992 - Microsoft C++ -> Visual C++ (Visual Studio)
+1998 - ISO标准，C++98
+2003 - 修订，C++03
+2011 - ISO对C++98做了革命性的改变，C++11
+2014 - 扩展，C++14
+2017 - C++17
+二、第一个C++程序
+1.编译器
+$ g++ hello.cpp -> a.out
+$ gcc hello.cpp -lstdc++ -> a.out
+2.扩展名
+.cpp/.cc/.C/.cxx
+$ gcc hello.c -x c++ -lstdc++ -I...
+3.头文件
+#include <iostream> - 所有与I/O有关的类型、对象、函数都在此头文件中
+标准C的头文件依然可以使用，而且C++还提供了一套不带.h扩展名的等价版本：
+<stdio.h> == <cstdio>
+<stdlib.h> == <cstdlib>
+<string.h> == <cstring>
+...
+C++标准头文件路径：
+/usr/include/c++/<版本号>/...
+使用g++编译命令，该路径会被作为缺省头文件搜索路径。
+4.I/O流
+I/O流对象，cout表示标准输出流对象，cin表示标准输入流对象，<<表示向输出流对象做插入，>>表示从输入流对象提取。
+5.标准名字空间
+std: 所有标准C++中的函数、类型、对象都在std名字空间中。
+三、名字空间
+1.为什么需要名字空间——WHY？
+1)避免名字冲突
+2)划分逻辑单元
+2.什么是名字空间——WHAT？
+1)名字空间定义
+namespace 名字空间名 {
+    名字空间成员1;
+    名字空间成员2;
+    ...
+}
+名字空间成员可以是变量、函数、类型、名字空间。
+例如：
+namespace ns1 {
+    int x;
+    void foo (void) { ... }
+    struct Student { ... };
+    namespace ns2 { ... }
+}
+2)名字空间合并
+namespace nsa {
+    int a;
+}
+namespace nsa {
+    int b;
+}
+被编译后实际上被合并为一个名字空间，等价于：
+namespace nsa {
+    int a;
+    int b;
+}
+3)名字空间成员的声明和定义可以分开
+namespace ns {
+    void foo (void); // 声明
+    extern int global; // 声明
+}
+void ns::foo (void) { // 定义
+    std::cout << "Hello, World !" << std::endl;
+}
+int ns::global = 0; // 定义
+3.怎样使用名字空间——HOW？
+1)作用域限定运算符“::”
+名字空间名::名字空间成员1;
+例如：
+ns1::x = 123;
+ns1::foo ();
+      |
+      V
+ns1的foo函数
+2)名字空间指令
+using namespace 名字空间名;
+在该条指令以后的代码中，指定名字空间中的成员都可见，访问其中的成员可以省略作用域限定，前提是不能有名字冲突。
+3)名字空间声明
+using 名字空间名::名字空间成员;
+将特定名字空间中的特定成员引入当前作用域，在该作用域中访问这些成员就如同访问该作用域自己的标识符一样，可以省略作用域限定，前提是不能有名字冲突。
+4.无名名字空间
+不属于任何名字空间的标识符，将被编译器自动划归无名名字空间。访问无名空间中的标识符直接在该标识符前面写上“::”即可。
+5.嵌套名字空间
+namespace ns1 {
+    namespace ns2 {
+        namespace ns3 {
+            int x;
+        }
+    }
+}
+ns1::ns2::ns3::x = 10;
+namespace dms {
+    namespace client {
+        namespace reader {
+            void backup (void) { ... }
+        }
+        namespace sender {
+        }
+    }
+    namespace server {
+    }
+}
+dms::client::reader::backup ();
+namespace dcr = dms::client::reader; // 名字空间别名
+dcr::backup ();
+四、结构、联合和枚举
+1.结构
+1)定义结构类型变量，struct关键字可以省略。
+struct Student {
+    char name[64];
+    int age;
+};
+C语言：
+struct Student s1 = {"张飞", 22};
+C++语言：
+Student s1 = {"张飞", 22};
+2)结构体内部可以定义函数，这样函数被称为结构体的成员函数，结构体中域或者字段则被称为成员变量。在成员函数中可以直接访问成员变量。
+2.联合
+1)定义联合类型变量，union关键字可以省略。
+2)可以定义匿名联合。匿名联合并非类型，而是一种对变量内存布局的约束。
+3.枚举
+1)定义枚举类型变量，enum关键字可以省略。
+2)在C++中枚举是独立的类型，不能从整型隐式转换。
+int<-隐式-枚举
+     -显式->
+五、字符串
+1.在C中表示字符串：双引号字面值、字符指针、字符数组。
+printf ("Hello, World !\n");
+char* p = "Hello, World !";
+printf ("%s\n", p);
+char s[] = "Hello, World !");
+printf ("%s\n", s);
+2.在C++增加了string类型，专门表示字符串。
+六、布尔类型
+1.bool专门表示逻辑值
+2.字面值：true/false
+3.在内存中占用一个字节，1表示true，0表示false
+4.布尔类型的变量可以从任意类型隐式转换，非零是true，否则就是false
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

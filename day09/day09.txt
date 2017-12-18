@@ -1,0 +1,118 @@
+二、异常语法
+1.异常抛出：throw 异常对象;
+1)可以抛出基本类型的对象
+throw -1;
+throw "打开文件失败！";
+2)可以抛出类类型的对象
+FileException ex ("打开文件失败！");
+throw ex;
+throw FileException ("打开文件失败！");
+3)不要抛出局部对象的指针
+FileException ex ("打开文件失败！");
+throw &ex; // 不要！
+2.异常捕获：
+try {
+     可能引发异常的操作;
+}
+catch (异常类型1& ex) {
+     针对异常类型1的处理;
+}
+catch (异常类型2& ex) {
+     针对异常类型2的处理;
+}
+...
+catch (...) {
+     针对其它异常的处理;
+}
+3.catch子句根据异常对象的类型自上至下顺序匹配，而非最优匹配，因此对子类类型异常的捕获不要放在对基类类型异常的捕获后面，否则前者将被后者提前截获。
+4.建议在catch子句中使用引用接收异常对象，避免拷贝构造的性能开销，同时可以减少引发新异常的风险。
+5.可以被throw子句抛出的对象类型，必须支持深拷贝，否则所抛出异常对象将和安全区中的副本形成内存耦合，可能在后续操作中引发未定义的后果。
+三、异常说明
+1.无论是全局函数还是类的成员函数，可以在其原型中增加异常说明，意在说明该函数所可能抛出的异常类型。
+返回类型 函数名 (形参表) [const] throw (异常类型表) { ... }
+void foo (string const& file, string const& size, int x, int y)
+    throw (FileException, MemoryException,
+        DivByZeroException) {
+    ...
+} 
+2.函数的异常说明是一种承诺，即表示该函数所抛出异常不会超出所说明的范围。如果该函数真的抛出了异常说明以外的异常类型，该异常无法被此函数的调用者所捕获，而是继续向上层抛出，直至被系统捕获，中止进程。
+3.函数异常说明的两种极端形式
+1)不写异常说明，表示可以抛出任何异常；
+2)空异常说明，throw ()，表示不会抛出任何异常。
+4.如果函数的声明和定义分开书写，一定要保证其异常说明严格一致，但异常类型的顺序无所谓。
+5.如果基类中的虚函数带有异常说明，那么该函数在子类中的覆盖版本不能说明比基类版本抛出更多的异常，否则将因为放松throw限定而导致编译失败。
+四、构造函数和析构函数中的异常
+1.构造函数可以抛出异常，而且某些情况下还必须抛出异常。构造函数抛出异常，对象将会被不完整构造，这样的对象其析构函数永远不会被执行。因此在构造函数抛出异常之前，就需要手动销毁所有在异常产生之前动态分配的资源，除非使用了智能指针(auto_ptr)。
+2.析构函数最好不要抛出异常
+class A {
+    ~A (void) {
+        ...
+        throw ...;
+        ...
+    }
+}
+try {
+    A a;
+    // ...
+}
+catch (exception& ex) {
+    ...
+}
+在两种情况下，类的析构函数会被调用：
+1)正常销毁对象，离开作用域或显式delete；
+2)在异常传递的堆栈辗转开解过程中，由异常处理系统负责销毁对象；
+对于第二种情况，异常正处于激活状态，而析构函数又抛出了异常，并试图将流程转移至析构函数之外，这时C++将通过std::terminate()函数，令进程终止，以防止因为堆栈辗转开解过程的无限递归导致栈空间溢出。
+void foo (void) {
+    ...
+    throw 1;
+    ...
+}
+class A {
+    ~A (void) {
+        try {
+            foo ();
+        }
+        catch (...) {}
+    }
+};
+在析构函数中，执行任何可能引发异常的操作，都尽量把异常在析构函数内部消化掉，防止其从析构函数中被继续抛出。
+====
+I/O流
+====
+一、主要I/O流类
+                              ios_base
+                                     |
+                                   ios
+                    ___/     |           |      \___    
+                   /          |            |           \
+   fstreambase istream ostream strstreambase
+               
+ifstream ofstream iostream istrstream ostrstream
+
+        fstream                                  strstream
+三个头文件六个类：
+读取文件：ifstream      \
+写入文件：ofstream       > #include <fstream>
+读写文件：fstream       /
+读取内存：istrstream   \
+写入内存：ostrstream    > #include <sstream>
+读写内存：strstream    /
+istream    \
+ostream     > #include <iostream>
+iostream  /
+1.格式化I/O
+1)格式化函数：通过调用I/O对象的成员函数，改变或者获取其中的状态，进而影响其格式化数据的形式。
+int ios::precision (int);             // 设置浮点精度，返回原精度
+int ios::precision (void) const; // 获取浮点精度
+2)流控制符：通过将流控制符对象插入输出流，或提取自输入流，改变其中的状态，进而影响其格式化数据的形式。
+setprecision (int) // 设置浮点精度
+2.二进制I/O
+istream& istream::read (char* buffer, size_t num);
+如果实际读到的字节数与num相等，返回的流对象的bool值是true，否则返回的流对象的bool值是false。
+size_t istream::gcount (void);
+返回最后一次读取的字节数。
+ostream& ostream::write (char const* buffer, size_t num);
+写成功，返回的流对象的bool值是true，否则false。
+思考：基于异或算法的文件加解密程序
+明文 ^ 密钥 -> 密文
+密文 ^ 密钥 -> 明文
